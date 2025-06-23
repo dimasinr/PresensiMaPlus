@@ -3,7 +3,7 @@ from django.contrib.auth import logout as logout_auth
 from django.contrib import messages
 from django.contrib.auth import authenticate, login as auth_login
 from django.contrib.auth.decorators import login_required
-from django.http import JsonResponse
+from django.http import JsonResponse, Http404
 from django.utils import timezone
 from django.db import models
 from datetime import datetime, timedelta
@@ -17,7 +17,7 @@ def home(request):
     if request.user.is_authenticated:
         if request.user.abstract_user.role == 'admin':
             # Admin dashboard context
-            today = timezone.now().date()
+            today = timezone.localtime(timezone.now()).date()
             
             # Get statistics for admin dashboard
             total_guru = AbstractUser.objects.filter(role='guru').count()
@@ -67,7 +67,7 @@ def home(request):
             return render(request, 'templates/home/admin/index.html', context)
         else:
             # Teacher dashboard context
-            today = timezone.now().date()
+            today = timezone.localtime(timezone.now()).date()
             user = request.user.abstract_user
             
             # Get today's attendance
@@ -77,8 +77,8 @@ def home(request):
             ).first()
             
             # Get monthly statistics
-            current_month = timezone.now().month
-            current_year = timezone.now().year
+            current_month = timezone.localtime(timezone.now()).month
+            current_year = timezone.localtime(timezone.now()).year
             
             monthly_presensi = Presensi.objects.filter(
                 user=user,
@@ -141,14 +141,14 @@ def analisa_absensi(request):
         return redirect('home')
     
     # Get month and year from GET parameters, default to current month
-    selected_month = int(request.GET.get('month', timezone.now().month))
-    selected_year = int(request.GET.get('year', timezone.now().year))
+    selected_month = int(request.GET.get('month', timezone.localtime(timezone.now()).month))
+    selected_year = int(request.GET.get('year', timezone.localtime(timezone.now()).year))
     
     # Validate month and year
     if selected_month < 1 or selected_month > 12:
-        selected_month = timezone.now().month
-    if selected_year < 2020 or selected_year > timezone.now().year + 1:
-        selected_year = timezone.now().year
+        selected_month = timezone.localtime(timezone.now()).month
+    if selected_year < 2020 or selected_year > timezone.localtime(timezone.now()).year + 1:
+        selected_year = timezone.localtime(timezone.now()).year
     
     # Get all teachers
     teachers = AbstractUser.objects.filter(role='guru')
@@ -201,7 +201,7 @@ def analisa_absensi(request):
     
     # Create month options for filter
     month_options = []
-    current_date = timezone.now()
+    current_date = timezone.localtime(timezone.now())
     
     # Generate options for the last 12 months
     for i in range(12):
@@ -274,8 +274,8 @@ def daftar_guru(request):
 
     teachers = AbstractUser.objects.filter(role='guru').order_by('first_name')
     # Get current month statistics for each teacher
-    current_month = timezone.now().month
-    current_year = timezone.now().year
+    current_month = timezone.localtime(timezone.now()).month
+    current_year = timezone.localtime(timezone.now()).year
     for teacher in teachers:
         monthly_presensi = Presensi.objects.filter(
             user=teacher,
@@ -343,13 +343,13 @@ def list_pengajuan(request):
             
             if action == 'approve':
                 pengajuan.status = 'disetujui'
-                pengajuan.tanggal_approval = timezone.now()
+                pengajuan.tanggal_approval = timezone.localtime(timezone.now())
                 pengajuan.approved_by = request.user.abstract_user
                 messages.success(request, 'Pengajuan berhasil disetujui')
             elif action == 'reject':
                 pengajuan.status = 'ditolak'
                 pengajuan.alasan_penolakan = alasan
-                pengajuan.tanggal_approval = timezone.now()
+                pengajuan.tanggal_approval = timezone.localtime(timezone.now())
                 pengajuan.approved_by = request.user.abstract_user
                 messages.success(request, 'Pengajuan berhasil ditolak')
             
@@ -371,7 +371,7 @@ def absensi(request):
         messages.error(request, 'Akses ditolak')
         return redirect('home')
     
-    today = timezone.now().date()
+    today = timezone.localtime(timezone.now()).date()
     user = request.user.abstract_user
     
     # Check if already checked in today
@@ -389,7 +389,7 @@ def absensi(request):
                 presensi = Presensi.objects.create(
                     user=user,
                     tanggal=today,
-                    jam_masuk=timezone.now().time(),
+                    jam_masuk=timezone.localtime(timezone.now()).time(),
                     image_checkin=request.FILES.get('image_checkin'),
                     lokasi_checkin=request.POST.get('lokasi', '')
                 )
@@ -399,7 +399,7 @@ def absensi(request):
         
         elif action == 'checkout':
             if today_presensi and not today_presensi.jam_pulang:
-                today_presensi.jam_pulang = timezone.now().time()
+                today_presensi.jam_pulang = timezone.localtime(timezone.now()).time()
                 today_presensi.image_checkout = request.FILES.get('image_checkout')
                 today_presensi.lokasi_checkout = request.POST.get('lokasi', '')
                 today_presensi.save()
@@ -426,15 +426,15 @@ def history_absensi(request):
     try:
         month = int(request.GET.get('month', ''))
     except (TypeError, ValueError):
-        month = timezone.now().month
+        month = timezone.localtime(timezone.now()).month
     if not (1 <= month <= 12):
-        month = timezone.now().month
+        month = timezone.localtime(timezone.now()).month
     try:
         year = int(request.GET.get('year', ''))
     except (TypeError, ValueError):
-        year = timezone.now().year
+        year = timezone.localtime(timezone.now()).year
     if not (2000 <= year <= 2100):
-        year = timezone.now().year
+        year = timezone.localtime(timezone.now()).year
 
     presensi_list = Presensi.objects.filter(
         user=user,
@@ -450,7 +450,7 @@ def history_absensi(request):
     sakit = presensi_list.filter(status='sakit').count()
     alpha = presensi_list.filter(status='alpha').count()
     
-    now_year = timezone.now().year
+    now_year = timezone.localtime(timezone.now()).year
     tahun_range = list(range(now_year-5, now_year+3))
 
     context = {
@@ -491,7 +491,7 @@ def pengajuan(request):
                 
                 if start_date > end_date:
                     messages.error(request, 'Tanggal selesai harus setelah tanggal mulai')
-                elif start_date < timezone.now().date():
+                elif start_date < timezone.localtime(timezone.now()).date():
                     messages.error(request, 'Tanggal mulai tidak boleh di masa lalu')
                 else:
                     # Create leave application
@@ -554,3 +554,25 @@ def ubah_password_guru(request):
         except AbstractUser.DoesNotExist:
             return JsonResponse({'success': False, 'error': 'Guru tidak ditemukan'}, status=404)
     return JsonResponse({'success': False, 'error': 'Metode tidak diizinkan'}, status=405)
+
+def presensi_detail(request, presensi_id):
+    if not request.user.is_authenticated or request.user.abstract_user.role != 'guru':
+        return JsonResponse({'error': 'Akses ditolak'}, status=403)
+    try:
+        presensi = Presensi.objects.get(id=presensi_id, user=request.user.abstract_user)
+    except Presensi.DoesNotExist:
+        return JsonResponse({'error': 'Data tidak ditemukan'}, status=404)
+    data = {
+        'id': presensi.id,
+        'tanggal': presensi.tanggal.strftime('%d/%m/%Y'),
+        'hari': presensi.tanggal.strftime('%A'),
+        'jam_masuk': presensi.jam_masuk.strftime('%H:%M') if presensi.jam_masuk else '-',
+        'jam_pulang': presensi.jam_pulang.strftime('%H:%M') if presensi.jam_pulang else '-',
+        'status': presensi.status,
+        'terlambat_menit': presensi.terlambat_menit,
+        'jam_kerja_efektif': float(presensi.jam_kerja_efektif),
+        'lokasi_checkin': presensi.lokasi_checkin,
+        'lokasi_checkout': presensi.lokasi_checkout,
+        'keterangan': presensi.keterangan,
+    }
+    return JsonResponse({'success': True, 'data': data})

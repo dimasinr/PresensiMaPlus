@@ -1,3 +1,4 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="id">
 <head>
@@ -359,11 +360,13 @@
         <div class="sidebar p-3" id="sidebar">
             <div class="text-center mb-4">
                 <h4 class="text-white mb-0">
-                    <i class="fas fa-school me-2"></i>
+                    <!-- <i class="fas fa-school me-2"></i> -->
+                     <img src="{% static 'logo_sekolah.png' %}" style="width: 20%; height: 20%;" alt="">
                     Presensi Guru
+                   
                 </h4>
-                <small class="text-white-50">{{ user.abstract_user.role|title }}</small>
             </div>
+            <small class="text-white-50">{{ user.abstract_user.role|title }}</small>
             
             <nav class="nav flex-column">
                 <a class="nav-link {% if request.resolver_match.url_name == 'home' %}active{% endif %}" href="{% url 'home' %}" onclick="closeSidebar()">

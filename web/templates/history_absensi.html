@@ -202,13 +202,13 @@
                                 <td>
                                     <div class="btn-group" role="group">
                                         <button class="btn btn-sm btn-outline-info" 
-                                                onclick="viewAbsensiDetail({{ presensi.id }})"
+                                                onclick="viewAbsensiDetail('{{ presensi.id }}')"
                                                 title="Lihat Detail">
                                             <i class="fas fa-eye"></i>
                                         </button>
                                         {% if presensi.image_checkin or presensi.image_checkout %}
                                         <button class="btn btn-sm btn-outline-primary" 
-                                                onclick="viewPhotos({{ presensi.id }})"
+                                                onclick="viewPhotos('{{ presensi.id }}')"
                                                 title="Lihat Foto">
                                             <i class="fas fa-camera"></i>
                                         </button>
@@ -282,33 +282,50 @@
 function viewAbsensiDetail(presensiId) {
     const modal = new bootstrap.Modal(document.getElementById('absensiModal'));
     modal.show();
-    
-    // Simulate loading data
-    setTimeout(() => {
-        document.getElementById('absensiModalBody').innerHTML = `
-            <div class="row">
-                <div class="col-md-6">
-                    <h6>Informasi Absensi</h6>
-                    <table class="table table-sm">
-                        <tr><td>ID Absensi</td><td>: ${presensiId}</td></tr>
-                        <tr><td>Tanggal</td><td>: 01/01/2024</td></tr>
-                        <tr><td>Jam Masuk</td><td>: 07:15</td></tr>
-                        <tr><td>Jam Pulang</td><td>: 15:30</td></tr>
-                        <tr><td>Status</td><td>: <span class="badge bg-warning">Terlambat</span></td></tr>
-                    </table>
+    document.getElementById('absensiModalBody').innerHTML = '<div class="text-center py-4"><div class="spinner-border text-primary"></div><br>Memuat data...</div>';
+    fetch(`/presensi-detail/${presensiId}/`)
+        .then(response => response.json())
+        .then(result => {
+            if (!result.success) {
+                document.getElementById('absensiModalBody').innerHTML = `<div class='alert alert-danger'>${result.error || 'Gagal memuat data.'}</div>`;
+                return;
+            }
+            const data = result.data;
+            let mapCheckin = data.lokasi_checkin ? `<iframe width='100%' height='120' style='border:0' loading='lazy' allowfullscreen src='https://www.google.com/maps?q=${encodeURIComponent(data.lokasi_checkin)}&output=embed'></iframe>` : '-';
+            let mapCheckout = data.lokasi_checkout ? `<iframe width='100%' height='120' style='border:0' loading='lazy' allowfullscreen src='https://www.google.com/maps?q=${encodeURIComponent(data.lokasi_checkout)}&output=embed'></iframe>` : '-';
+            document.getElementById('absensiModalBody').innerHTML = `
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>Informasi Absensi</h6>
+                        <table class="table table-sm">
+                            <tr><td>ID Absensi</td><td>: ${data.id}</td></tr>
+                            <tr><td>Tanggal</td><td>: ${data.tanggal} (${data.hari})</td></tr>
+                            <tr><td>Jam Masuk</td><td>: ${data.jam_masuk}</td></tr>
+                            <tr><td>Jam Pulang</td><td>: ${data.jam_pulang}</td></tr>
+                            <tr><td>Status</td><td>: <span class="badge bg-warning text-dark">${data.status}</span></td></tr>
+                        </table>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>Detail Kerja</h6>
+                        <table class="table table-sm">
+                            <tr><td>Terlambat</td><td>: ${data.terlambat_menit} menit</td></tr>
+                            <tr><td>Jam Kerja Efektif</td><td>: ${data.jam_kerja_efektif} jam</td></tr>
+                            <tr><td>Lokasi Check-in</td><td>${mapCheckin}</td></tr>
+                            <tr><td>Lokasi Check-out</td><td>${mapCheckout}</td></tr>
+                        </table>
+                    </div>
                 </div>
-                <div class="col-md-6">
-                    <h6>Detail Kerja</h6>
-                    <table class="table table-sm">
-                        <tr><td>Terlambat</td><td>: 15 menit</td></tr>
-                        <tr><td>Jam Kerja Efektif</td><td>: 8.25 jam</td></tr>
-                        <tr><td>Lokasi Check-in</td><td>: Sekolah</td></tr>
-                        <tr><td>Lokasi Check-out</td><td>: Sekolah</td></tr>
-                    </table>
+                <div class="row mt-2">
+                    <div class="col-12">
+                        <h6>Keterangan</h6>
+                        <div class="border rounded p-2 bg-light">${data.keterangan ? data.keterangan : '-'}</div>
+                    </div>
                 </div>
-            </div>
-        `;
-    }, 1000);
+            `;
+        })
+        .catch(() => {
+            document.getElementById('absensiModalBody').innerHTML = `<div class='alert alert-danger'>Gagal memuat data.</div>`;
+        });
 }
 
 // View photos

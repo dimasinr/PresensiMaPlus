@@ -1,5 +1,5 @@
 """
-URL configuration for dash project.
+URL configuration for presensidash project.
 
 The `urlpatterns` list routes URLs to views. For more information please see:
     https://docs.djangoproject.com/en/4.2/topics/http/urls/
@@ -37,6 +37,7 @@ urlpatterns = (
         path('absensi/', views.absensi, name='absensi'),
         path('history-absensi/', views.history_absensi, name='history_absensi'),
         path('pengajuan/', views.pengajuan, name='pengajuan'),
+        path('presensi-detail/<int:presensi_id>/', views.presensi_detail, name='presensi_detail'),
     ]
     + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
     + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

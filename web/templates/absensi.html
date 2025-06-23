@@ -397,9 +397,8 @@ function getCurrentLocationAbsensi() {
 // Tampilkan jam WIB
 function updateJamWIB() {
     const now = new Date();
-    // WIB = UTC+7
-    const wib = new Date(now.getTime() + (7 * 60 - now.getTimezoneOffset()) * 60000);
-    const jamStr = wib.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    // Tampilkan waktu WIB (Asia/Jakarta) secara akurat
+    const jamStr = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit', timeZone: 'Asia/Jakarta' });
     if (document.getElementById('jamWIBCheckin')) {
         document.getElementById('jamWIBCheckin').textContent = 'Waktu (WIB): ' + jamStr;
     }
