@@ -1,0 +1,342 @@
+{% extends 'base.html' %}
+{% load general_function %}
+
+{% block title %}Riwayat Absensi - Sistem Presensi Guru{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>
+                <i class="fas fa-history me-2"></i>
+                Riwayat Absensi
+            </h2>
+            <div>
+                <span class="badge bg-primary fs-6">
+                    {{ selected_month|date:"F Y" }}
+                </span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Filter and Statistics -->
+<div class="row mb-4">
+    <div class="col-lg-8 mb-3">
+        <div class="card">
+            <div class="card-body">
+                <form method="GET" class="row g-3">
+                    <div class="col-md-4 col-sm-6">
+                        <label class="form-label">Bulan</label>
+                        <select name="month" class="form-select">
+                            {% for month_num in months %}
+                                <option value="{{ month_num }}" {% if selected_month == month_num %}selected{% endif %}>
+                                    {{ month_num|get_bulan_id }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-4 col-sm-6">
+                        <label class="form-label">Tahun</label>
+                        <select name="year" class="form-select">
+                            {% for year in tahun_range %}
+                                <option value="{{ year }}" {% if selected_year == year %}selected{% endif %}>{{ year }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-4 col-sm-12">
+                        <label class="form-label">&nbsp;</label>
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-filter me-1"></i>
+                                Filter
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-4 mb-3">
+        <div class="card">
+            <div class="card-header">
+                <h6 class="mb-0">
+                    <i class="fas fa-chart-pie me-2"></i>
+                    Statistik Bulan Ini
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-4">
+                        <div class="border rounded p-2">
+                            <h6 class="text-success mb-0">{{ hadir }}</h6>
+                            <small class="text-muted">Hadir</small>
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <div class="border rounded p-2">
+                            <h6 class="text-warning mb-0">{{ terlambat }}</h6>
+                            <small class="text-muted">Terlambat</small>
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <div class="border rounded p-2">
+                            <h6 class="text-info mb-0">{{ izin }}</h6>
+                            <small class="text-muted">Izin</small>
+                        </div>
+                    </div>
+                </div>
+                <hr>
+                <div class="row text-center">
+                    <div class="col-6">
+                        <div class="border rounded p-2">
+                            <h6 class="text-danger mb-0">{{ sakit }}</h6>
+                            <small class="text-muted">Sakit</small>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="border rounded p-2">
+                            <h6 class="text-secondary mb-0">{{ alpha }}</h6>
+                            <small class="text-muted">Alpha</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Attendance Records -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-list me-2"></i>
+                    Daftar Absensi
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Tanggal</th>
+                                <th>Jam Masuk</th>
+                                <th>Jam Pulang</th>
+                                <th>Status</th>
+                                <th>Terlambat</th>
+                                <th>Jam Kerja</th>
+                                <th>Lokasi</th>
+                                <th>Keterangan</th>
+                                <th>Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for presensi in presensi_list %}
+                            <tr>
+                                <td>
+                                    <div>
+                                        <strong>{{ presensi.tanggal|date:"d/m/Y" }}</strong>
+                                        <br>
+                                        <small class="text-muted">{{ presensi.tanggal|date:"l" }}</small>
+                                    </div>
+                                </td>
+                                <td>
+                                    {% if presensi.jam_masuk %}
+                                        <span class="fw-bold">{{ presensi.jam_masuk|time:"H:i" }}</span>
+                                    {% else %}
+                                        <span class="text-muted">-</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if presensi.jam_pulang %}
+                                        <span class="fw-bold">{{ presensi.jam_pulang|time:"H:i" }}</span>
+                                    {% else %}
+                                        <span class="text-muted">-</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <span class="status-badge status-{{ presensi.status }}">
+                                        {{ presensi.status|title }}
+                                    </span>
+                                </td>
+                                <td>
+                                    {% if presensi.terlambat_menit > 0 %}
+                                        <span class="text-warning fw-bold">
+                                            {{ presensi.terlambat_menit }} menit
+                                        </span>
+                                    {% else %}
+                                        <span class="text-success">-</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if presensi.jam_kerja_efektif > 0 %}
+                                        <span class="fw-bold">{{ presensi.jam_kerja_efektif }} jam</span>
+                                    {% else %}
+                                        <span class="text-muted">-</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if presensi.lokasi_checkin or presensi.lokasi_checkout %}
+                                        <small class="text-muted">
+                                            {% if presensi.lokasi_checkin %}
+                                                <i class="fas fa-map-marker-alt text-success"></i> {{ presensi.lokasi_checkin }}
+                                            {% endif %}
+                                            {% if presensi.lokasi_checkout %}
+                                                <br><i class="fas fa-map-marker-alt text-info"></i> {{ presensi.lokasi_checkout }}
+                                            {% endif %}
+                                        </small>
+                                    {% else %}
+                                        <span class="text-muted">-</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if presensi.keterangan %}
+                                        <small class="text-muted">{{ presensi.keterangan }}</small>
+                                    {% else %}
+                                        <span class="text-muted">-</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <div class="btn-group" role="group">
+                                        <button class="btn btn-sm btn-outline-info" 
+                                                onclick="viewAbsensiDetail({{ presensi.id }})"
+                                                title="Lihat Detail">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                        {% if presensi.image_checkin or presensi.image_checkout %}
+                                        <button class="btn btn-sm btn-outline-primary" 
+                                                onclick="viewPhotos({{ presensi.id }})"
+                                                title="Lihat Foto">
+                                            <i class="fas fa-camera"></i>
+                                        </button>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="9" class="text-center text-muted py-4">
+                                    <i class="fas fa-calendar-times fa-2x mb-2"></i>
+                                    <br>
+                                    Belum ada data absensi untuk periode ini
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Absensi Detail Modal -->
+<div class="modal fade" id="absensiModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-eye me-2"></i>
+                    Detail Absensi
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="absensiModalBody">
+                <!-- Content will be loaded here -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Photos Modal -->
+<div class="modal fade" id="photosModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-camera me-2"></i>
+                    Foto Absensi
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="photosModalBody">
+                <!-- Photos will be loaded here -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// View absensi detail
+function viewAbsensiDetail(presensiId) {
+    const modal = new bootstrap.Modal(document.getElementById('absensiModal'));
+    modal.show();
+    
+    // Simulate loading data
+    setTimeout(() => {
+        document.getElementById('absensiModalBody').innerHTML = `
+            <div class="row">
+                <div class="col-md-6">
+                    <h6>Informasi Absensi</h6>
+                    <table class="table table-sm">
+                        <tr><td>ID Absensi</td><td>: ${presensiId}</td></tr>
+                        <tr><td>Tanggal</td><td>: 01/01/2024</td></tr>
+                        <tr><td>Jam Masuk</td><td>: 07:15</td></tr>
+                        <tr><td>Jam Pulang</td><td>: 15:30</td></tr>
+                        <tr><td>Status</td><td>: <span class="badge bg-warning">Terlambat</span></td></tr>
+                    </table>
+                </div>
+                <div class="col-md-6">
+                    <h6>Detail Kerja</h6>
+                    <table class="table table-sm">
+                        <tr><td>Terlambat</td><td>: 15 menit</td></tr>
+                        <tr><td>Jam Kerja Efektif</td><td>: 8.25 jam</td></tr>
+                        <tr><td>Lokasi Check-in</td><td>: Sekolah</td></tr>
+                        <tr><td>Lokasi Check-out</td><td>: Sekolah</td></tr>
+                    </table>
+                </div>
+            </div>
+        `;
+    }, 1000);
+}
+
+// View photos
+function viewPhotos(presensiId) {
+    const modal = new bootstrap.Modal(document.getElementById('photosModal'));
+    modal.show();
+    
+    // Simulate loading photos
+    setTimeout(() => {
+        document.getElementById('photosModalBody').innerHTML = `
+            <div class="row">
+                <div class="col-md-6">
+                    <h6>Foto Check-in</h6>
+                    <div class="text-center">
+                        <img src="/static/images/placeholder-checkin.jpg" class="img-fluid rounded" alt="Foto Check-in">
+                        <p class="text-muted mt-2">07:15 - Sekolah</p>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <h6>Foto Check-out</h6>
+                    <div class="text-center">
+                        <img src="/static/images/placeholder-checkout.jpg" class="img-fluid rounded" alt="Foto Check-out">
+                        <p class="text-muted mt-2">15:30 - Sekolah</p>
+                    </div>
+                </div>
+            </div>
+        `;
+    }, 1000);
+}
+</script>
+{% endblock %} 

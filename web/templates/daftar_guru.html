@@ -1,0 +1,394 @@
+{% extends 'base.html' %}
+
+{% block title %}Daftar Guru - Sistem Presensi Guru{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>
+                <i class="fas fa-users me-2"></i>
+                Daftar Guru
+            </h2>
+            <div>
+                <span class="badge bg-primary fs-6">
+                    Total: {{ teachers.count }} Guru
+                </span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Tambah Guru Form -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-user-plus me-2"></i>
+                    Tambah Guru Baru
+                </h5>
+            </div>
+            <div class="card-body">
+                <form method="post" class="row g-3">
+                    {% csrf_token %}
+                    <div class="col-md-4">
+                        <label class="form-label">Nama Depan</label>
+                        <input type="text" name="first_name" class="form-control" required>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Nama Belakang</label>
+                        <input type="text" name="last_name" class="form-control" required>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">NIP</label>
+                        <input type="text" name="nip" class="form-control" required>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Email</label>
+                        <input type="email" name="email" class="form-control" required>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">No. Telepon</label>
+                        <input type="text" name="phone" class="form-control">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Password</label>
+                        <input type="password" name="password" class="form-control" required>
+                    </div>
+                    <div class="col-12">
+                        <div class="d-grid">
+                            <button type="submit" name="add_guru" class="btn btn-primary">
+                                <i class="fas fa-plus me-2"></i> Tambah Guru
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Search and Filter -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="input-group">
+                            <span class="input-group-text">
+                                <i class="fas fa-search"></i>
+                            </span>
+                            <input type="text" class="form-control" id="searchInput" placeholder="Cari guru...">
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="d-flex gap-2">
+                            <select class="form-select" id="statusFilter">
+                                <option value="">Semua Status</option>
+                                <option value="active">Aktif</option>
+                                <option value="inactive">Tidak Aktif</option>
+                            </select>
+                            <button class="btn btn-outline-secondary" onclick="resetFilters()">
+                                <i class="fas fa-refresh"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Teachers List -->
+<div class="row">
+    {% for teacher in teachers %}
+    <div class="col-md-6 col-lg-4 mb-4 teacher-card">
+        <div class="card h-100">
+            <div class="card-header">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h6 class="mb-0">
+                        <i class="fas fa-user me-2"></i>
+                        {{ teacher.full_name }}
+                    </h6>
+                    <span class="badge bg-success">Aktif</span>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="row mb-3">
+                    <div class="col-12">
+                        <div class="d-flex align-items-center mb-2">
+                            <i class="fas fa-id-card text-muted me-2"></i>
+                            <small class="text-muted">NIP:</small>
+                            <span class="ms-2">{{ teacher.nip|default:"-" }}</span>
+                        </div>
+                        <div class="d-flex align-items-center mb-2">
+                            <i class="fas fa-envelope text-muted me-2"></i>
+                            <small class="text-muted">Email:</small>
+                            <span class="ms-2">{{ teacher.user.email|default:"-" }}</span>
+                        </div>
+                        <div class="d-flex align-items-center mb-2">
+                            <i class="fas fa-phone text-muted me-2"></i>
+                            <small class="text-muted">Telepon:</small>
+                            <span class="ms-2">{{ teacher.phone|default:"-" }}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Monthly Statistics -->
+                <div class="row text-center mb-3">
+                    <div class="col-4">
+                        <div class="border rounded p-2">
+                            <h6 class="text-success mb-0">{{ teacher.hadir_bulan_ini|default:0 }}</h6>
+                            <small class="text-muted">Hadir</small>
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <div class="border rounded p-2">
+                            <h6 class="text-warning mb-0">{{ teacher.terlambat_bulan_ini|default:0 }}</h6>
+                            <small class="text-muted">Terlambat</small>
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <div class="border rounded p-2">
+                            <h6 class="text-info mb-0">{{ teacher.izin_bulan_ini|default:0 }}</h6>
+                            <small class="text-muted">Izin</small>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Attendance Rate -->
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between align-items-center mb-1">
+                        <small class="text-muted">Kehadiran Bulan Ini</small>
+                        <small class="text-muted">{{ teacher.attendance_rate|default:0 }}%</small>
+                    </div>
+                    <div class="progress" style="height: 8px;">
+                        <div class="progress-bar bg-success" 
+                             role="progressbar" 
+                             style="width: {{ teacher.attendance_rate|default:0 }}%"
+                             aria-valuenow="{{ teacher.attendance_rate|default:0 }}" 
+                             aria-valuemin="0" 
+                             aria-valuemax="100">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Actions -->
+                <div class="d-grid gap-2">
+                    <a href="{% url 'analisa_absensi' %}?teacher={{ teacher.id }}" 
+                       class="btn btn-outline-primary btn-sm">
+                        <i class="fas fa-chart-bar me-1"></i>
+                        Lihat Analisa
+                    </a>
+                    <button class="btn btn-outline-info btn-sm" 
+                            onclick="showTeacherDetails({{ teacher.id }})">
+                        <i class="fas fa-eye me-1"></i>
+                        Detail
+                    </button>
+                    <button class="btn btn-outline-warning btn-sm" onclick="showPasswordModal({{ teacher.id }}, '{{ teacher.full_name }}')">
+                        <i class="fas fa-key me-1"></i> Ubah Password
+                    </button>
+                    <form method="post" style="display:inline;" onsubmit="return confirm('Yakin hapus guru ini?')">
+                        {% csrf_token %}
+                        <input type="hidden" name="delete_guru_id" value="{{ teacher.id }}">
+                        <button type="submit" class="btn btn-outline-danger btn-sm w-100 mt-2">
+                            <i class="fas fa-trash"></i> Hapus
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body text-center">
+                <i class="fas fa-users fa-3x text-muted mb-3"></i>
+                <h5>Belum ada guru terdaftar</h5>
+                <p class="text-muted">Daftar guru akan muncul setelah ada guru yang terdaftar dalam sistem</p>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- Teacher Details Modal -->
+<div class="modal fade" id="teacherModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-user me-2"></i>
+                    Detail Guru
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="teacherModalBody">
+                <!-- Content will be loaded here -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Ubah Password Guru -->
+<div class="modal fade" id="passwordModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="fas fa-key me-2"></i>Ubah Password Guru</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="ubahPasswordForm">
+                    <input type="hidden" id="modalGuruId">
+                    <div class="mb-3">
+                        <label class="form-label">Nama Guru</label>
+                        <input type="text" id="modalGuruName" class="form-control" readonly>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Password Baru</label>
+                        <input type="password" id="modalNewPassword" class="form-control" required>
+                    </div>
+                    <div id="ubahPasswordAlert"></div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
+                <button type="button" class="btn btn-primary" onclick="submitUbahPassword()">Simpan</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Search functionality
+document.getElementById('searchInput').addEventListener('keyup', function() {
+    const searchTerm = this.value.toLowerCase();
+    const teacherCards = document.querySelectorAll('.teacher-card');
+    
+    teacherCards.forEach(card => {
+        const teacherName = card.querySelector('h6').textContent.toLowerCase();
+        if (teacherName.includes(searchTerm)) {
+            card.style.display = 'block';
+        } else {
+            card.style.display = 'none';
+        }
+    });
+});
+
+// Status filter
+document.getElementById('statusFilter').addEventListener('change', function() {
+    const status = this.value;
+    const teacherCards = document.querySelectorAll('.teacher-card');
+    
+    teacherCards.forEach(card => {
+        if (status === '' || card.querySelector('.badge').textContent.toLowerCase().includes(status)) {
+            card.style.display = 'block';
+        } else {
+            card.style.display = 'none';
+        }
+    });
+});
+
+// Reset filters
+function resetFilters() {
+    document.getElementById('searchInput').value = '';
+    document.getElementById('statusFilter').value = '';
+    const teacherCards = document.querySelectorAll('.teacher-card');
+    teacherCards.forEach(card => {
+        card.style.display = 'block';
+    });
+}
+
+// Show teacher details
+function showTeacherDetails(teacherId) {
+    // This would typically make an AJAX call to get detailed teacher information
+    // For now, we'll show a placeholder
+    document.getElementById('teacherModalBody').innerHTML = `
+        <div class="text-center">
+            <i class="fas fa-spinner fa-spin fa-2x mb-3"></i>
+            <p>Memuat detail guru...</p>
+        </div>
+    `;
+    
+    const modal = new bootstrap.Modal(document.getElementById('teacherModal'));
+    modal.show();
+    
+    // Simulate loading data
+    setTimeout(() => {
+        document.getElementById('teacherModalBody').innerHTML = `
+            <div class="row">
+                <div class="col-md-6">
+                    <h6>Informasi Pribadi</h6>
+                    <table class="table table-sm">
+                        <tr><td>Nama</td><td>: Guru ${teacherId}</td></tr>
+                        <tr><td>NIP</td><td>: 123456789</td></tr>
+                        <tr><td>Email</td><td>: guru${teacherId}@sekolah.id</td></tr>
+                        <tr><td>Telepon</td><td>: 08123456789</td></tr>
+                    </table>
+                </div>
+                <div class="col-md-6">
+                    <h6>Statistik Kehadiran</h6>
+                    <table class="table table-sm">
+                        <tr><td>Hadir</td><td>: 20 hari</td></tr>
+                        <tr><td>Terlambat</td><td>: 2 hari</td></tr>
+                        <tr><td>Izin</td><td>: 1 hari</td></tr>
+                        <tr><td>Sakit</td><td>: 0 hari</td></tr>
+                    </table>
+                </div>
+            </div>
+        `;
+    }, 1000);
+}
+
+function showPasswordModal(guruId, guruName) {
+    document.getElementById('modalGuruId').value = guruId;
+    document.getElementById('modalGuruName').value = guruName;
+    document.getElementById('modalNewPassword').value = '';
+    document.getElementById('ubahPasswordAlert').innerHTML = '';
+    var modal = new bootstrap.Modal(document.getElementById('passwordModal'));
+    modal.show();
+}
+
+function submitUbahPassword() {
+    var guruId = document.getElementById('modalGuruId').value;
+    var newPassword = document.getElementById('modalNewPassword').value;
+    var alertDiv = document.getElementById('ubahPasswordAlert');
+    if (!newPassword) {
+        alertDiv.innerHTML = '<div class="alert alert-warning">Password baru tidak boleh kosong.</div>';
+        return;
+    }
+    var csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+    fetch('/ubah-password-guru/', {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': csrfToken,
+            'Accept': 'application/json',
+        },
+        body: new URLSearchParams({
+            guru_id: guruId,
+            new_password: newPassword
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alertDiv.innerHTML = '<div class="alert alert-success">' + data.message + '</div>';
+            setTimeout(() => { bootstrap.Modal.getInstance(document.getElementById('passwordModal')).hide(); }, 1200);
+        } else {
+            alertDiv.innerHTML = '<div class="alert alert-danger">' + (data.error || 'Gagal mengubah password') + '</div>';
+        }
+    })
+    .catch(() => {
+        alertDiv.innerHTML = '<div class="alert alert-danger">Terjadi kesalahan server.</div>';
+    });
+}
+</script>
+{% endblock %} 

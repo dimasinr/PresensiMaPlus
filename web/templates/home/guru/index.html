@@ -1,0 +1,278 @@
+{% extends 'base.html' %}
+
+{% block title %}
+Dashboard Guru - Sistem Presensi Guru
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h2 class="mb-4">
+            <i class="fas fa-chalkboard-teacher me-2"></i>
+            Dashboard Guru
+        </h2>
+    </div>
+</div>
+
+<!-- Today's Status -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-calendar-day me-2"></i>
+                    Status Hari Ini
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="me-3">
+                                <i class="fas fa-calendar fa-2x text-primary"></i>
+                            </div>
+                            <div>
+                                <h6 class="mb-0">{{ today|date:"l, d F Y" }}</h6>
+                                <small class="text-muted">Tanggal Hari Ini</small>
+                            </div>
+                        </div>
+                        
+                        {% if today_presensi %}
+                            <div class="d-flex align-items-center mb-3">
+                                <div class="me-3">
+                                    <i class="fas fa-clock fa-2x text-success"></i>
+                                </div>
+                                <div>
+                                    <h6 class="mb-0">{{ today_presensi.jam_masuk|time:"H:i" }}</h6>
+                                    <small class="text-muted">Jam Masuk</small>
+                                </div>
+                            </div>
+                            
+                            {% if today_presensi.jam_pulang %}
+                                <div class="d-flex align-items-center mb-3">
+                                    <div class="me-3">
+                                        <i class="fas fa-sign-out-alt fa-2x text-info"></i>
+                                    </div>
+                                    <div>
+                                        <h6 class="mb-0">{{ today_presensi.jam_pulang|time:"H:i" }}</h6>
+                                        <small class="text-muted">Jam Pulang</small>
+                                    </div>
+                                </div>
+                            {% endif %}
+                            
+                            <div class="d-flex align-items-center">
+                                <div class="me-3">
+                                    <i class="fas fa-tag fa-2x text-warning"></i>
+                                </div>
+                                <div>
+                                    <span class="status-badge status-{{ today_presensi.status }}">
+                                        {{ today_presensi.status|title }}
+                                    </span>
+                                    <br>
+                                    <small class="text-muted">Status Kehadiran</small>
+                                </div>
+                            </div>
+                        {% else %}
+                            <div class="alert alert-warning">
+                                <i class="fas fa-exclamation-triangle me-2"></i>
+                                Anda belum melakukan absensi hari ini
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <div class="text-center">
+                            {% if today_presensi %}
+                                {% if not today_presensi.jam_pulang %}
+                                    <div class="alert alert-success">
+                                        <i class="fas fa-check-circle fa-3x mb-3"></i>
+                                        <h5>Sudah Check-in</h5>
+                                        <p class="mb-0">Anda dapat melakukan check-out setelah jam kerja selesai</p>
+                                    </div>
+                                {% else %}
+                                    <div class="alert alert-info">
+                                        <i class="fas fa-home fa-3x mb-3"></i>
+                                        <h5>Check-out Selesai</h5>
+                                        <p class="mb-0">Terima kasih, selamat beristirahat!</p>
+                                    </div>
+                                {% endif %}
+                            {% else %}
+                                <div class="alert alert-primary">
+                                    <i class="fas fa-clock fa-3x mb-3"></i>
+                                    <h5>Belum Check-in</h5>
+                                    <p class="mb-0">Silakan lakukan check-in untuk memulai hari kerja</p>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Actions -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-bolt me-2"></i>
+                    Akses Cepat
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-6 col-md-3 mb-3">
+                        <a href="{% url 'absensi' %}" class="btn btn-outline-primary w-100 p-3">
+                            <i class="fas fa-clock fa-2x mb-2"></i><br>
+                            Absensi
+                        </a>
+                    </div>
+                    <div class="col-6 col-md-3 mb-3">
+                        <a href="{% url 'history_absensi' %}" class="btn btn-outline-success w-100 p-3">
+                            <i class="fas fa-history fa-2x mb-2"></i><br>
+                            Riwayat Absensi
+                        </a>
+                    </div>
+                    <div class="col-6 col-md-3 mb-3">
+                        <a href="{% url 'pengajuan' %}" class="btn btn-outline-warning w-100 p-3">
+                            <i class="fas fa-file-alt fa-2x mb-2"></i><br>
+                            Pengajuan Izin
+                        </a>
+                    </div>
+                    <div class="col-6 col-md-3 mb-3">
+                        <a href="{% url 'pengajuan' %}" class="btn btn-outline-info w-100 p-3">
+                            <i class="fas fa-list fa-2x mb-2"></i><br>
+                            List Pengajuan
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Monthly Statistics -->
+<div class="row">
+    <div class="col-lg-6 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-chart-pie me-2"></i>
+                    Statistik Bulan Ini
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-4">
+                        <div class="border-end">
+                            <h4 class="text-success mb-0">{{ hadir_bulan_ini }}</h4>
+                            <small class="text-muted">Hadir</small>
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <div class="border-end">
+                            <h4 class="text-warning mb-0">{{ terlambat_bulan_ini }}</h4>
+                            <small class="text-muted">Terlambat</small>
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <h4 class="text-info mb-0">{{ izin_bulan_ini }}</h4>
+                        <small class="text-muted">Izin</small>
+                    </div>
+                </div>
+                <hr>
+                <div class="text-center">
+                    <h6>Rata-rata Jam Kerja</h6>
+                    <h3 class="text-primary">{{ avg_jam_kerja|floatformat:1 }} Jam</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-6 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-file-alt me-2"></i>
+                    Pengajuan Terbaru
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if recent_pengajuan %}
+                    <div class="list-group list-group-flush">
+                        {% for pengajuan in recent_pengajuan %}
+                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                            <div>
+                                <strong>{{ pengajuan.jenis_izin|title }}</strong>
+                                <br>
+                                <small class="text-muted">{{ pengajuan.tanggal_mulai|date:"d/m/Y" }} - {{ pengajuan.tanggal_selesai|date:"d/m/Y" }}</small>
+                            </div>
+                            <span class="status-badge status-{{ pengajuan.status }}">
+                                {{ pengajuan.status|title }}
+                            </span>
+                        </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <p class="text-muted text-center">Belum ada pengajuan</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Work Hours Info -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-info-circle me-2"></i>
+                    Informasi Jam Kerja
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-6 col-md-3 text-center mb-3">
+                        <div class="border rounded p-3">
+                            <i class="fas fa-clock fa-2x text-primary mb-2"></i>
+                            <h6>Jam Masuk</h6>
+                            <p class="mb-0">07:00</p>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-3 text-center mb-3">
+                        <div class="border rounded p-3">
+                            <i class="fas fa-home fa-2x text-success mb-2"></i>
+                            <h6>Jam Pulang</h6>
+                            <p class="mb-0">15:00</p>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-3 text-center mb-3">
+                        <div class="border rounded p-3">
+                            <i class="fas fa-hourglass-half fa-2x text-warning mb-2"></i>
+                            <h6>Durasi Kerja</h6>
+                            <p class="mb-0">8 Jam</p>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-3 text-center mb-3">
+                        <div class="border rounded p-3">
+                            <i class="fas fa-exclamation-triangle fa-2x text-danger mb-2"></i>
+                            <h6>Toleransi Terlambat</h6>
+                            <p class="mb-0">15 Menit</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block javascripts %}
+<!-- TARO JAVASCRIPT DISIINI  -->
+ <script>
+
+ </script>
+{% endblock javascripts %}

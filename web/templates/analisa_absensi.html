@@ -1,0 +1,283 @@
+{% extends 'base.html' %}
+
+{% block title %}Analisa Absensi - Sistem Presensi Guru{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>
+                <i class="fas fa-chart-bar me-2"></i>
+                Analisa Absensi
+            </h2>
+            <div class="d-flex align-items-center">
+                <!-- Month Filter -->
+                <form method="GET" class="me-3">
+                    <div class="input-group">
+                        <select name="month" class="form-select" onchange="this.form.submit()">
+                            {% for option in month_options %}
+                                <option value="{{ option.value }}" 
+                                        data-year="{{ option.year }}"
+                                        {% if option.value == selected_month and option.year == selected_year %}selected{% endif %}>
+                                    {{ option.label }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                        <input type="hidden" name="year" id="year-input" value="{{ selected_year }}">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-filter"></i>
+                        </button>
+                    </div>
+                </form>
+                <span class="badge bg-primary fs-6">
+                    {{ formatted_date }}
+                </span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- JavaScript to handle year selection -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const monthSelect = document.querySelector('select[name="month"]');
+    const yearInput = document.getElementById('year-input');
+    
+    monthSelect.addEventListener('change', function() {
+        const selectedOption = this.options[this.selectedIndex];
+        const year = selectedOption.getAttribute('data-year');
+        yearInput.value = year;
+    });
+});
+</script>
+
+<!-- Summary Statistics -->
+<div class="row mb-4">
+    <div class="col-md-3 mb-3">
+        <div class="card bg-success text-white">
+            <div class="card-body text-center">
+                <h4 class="mb-0">{{ total_hadir }}</h4>
+                <p class="mb-0">Total Hadir</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="card bg-warning text-white">
+            <div class="card-body text-center">
+                <h4 class="mb-0">{{ total_terlambat }}</h4>
+                <p class="mb-0">Total Terlambat</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="card bg-info text-white">
+            <div class="card-body text-center">
+                <h4 class="mb-0">{{ total_izin }}</h4>
+                <p class="mb-0">Total Izin</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="card bg-danger text-white">
+            <div class="card-body text-center">
+                <h4 class="mb-0">{{ total_alpha }}</h4>
+                <p class="mb-0">Total Alpha</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Teacher Attendance Analysis -->
+{% for data in attendance_data %}
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="fas fa-user me-2"></i>
+                        {{ data.teacher.full_name }}
+                    </h5>
+                    <div>
+                        <span class="badge bg-primary me-2">
+                            Kehadiran: {{ data.attendance_rate }}%
+                        </span>
+                        <span class="badge bg-info">
+                            Rata-rata: {{ data.avg_work_hours }} Jam
+                        </span>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                <!-- Statistics Row -->
+                <div class="row mb-3">
+                    <div class="col-md-2 text-center">
+                        <div class="border rounded p-2">
+                            <h6 class="text-success mb-0">{{ data.hadir }}</h6>
+                            <small class="text-muted">Hadir</small>
+                        </div>
+                    </div>
+                    <div class="col-md-2 text-center">
+                        <div class="border rounded p-2">
+                            <h6 class="text-warning mb-0">{{ data.terlambat }}</h6>
+                            <small class="text-muted">Terlambat</small>
+                        </div>
+                    </div>
+                    <div class="col-md-2 text-center">
+                        <div class="border rounded p-2">
+                            <h6 class="text-info mb-0">{{ data.izin }}</h6>
+                            <small class="text-muted">Izin</small>
+                        </div>
+                    </div>
+                    <div class="col-md-2 text-center">
+                        <div class="border rounded p-2">
+                            <h6 class="text-danger mb-0">{{ data.sakit }}</h6>
+                            <small class="text-muted">Sakit</small>
+                        </div>
+                    </div>
+                    <div class="col-md-2 text-center">
+                        <div class="border rounded p-2">
+                            <h6 class="text-secondary mb-0">{{ data.alpha }}</h6>
+                            <small class="text-muted">Alpha</small>
+                        </div>
+                    </div>
+                    <div class="col-md-2 text-center">
+                        <div class="border rounded p-2">
+                            <h6 class="text-primary mb-0">{{ data.total_days }}</h6>
+                            <small class="text-muted">Total Hari</small>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Detailed Attendance Table -->
+                <div class="table-responsive">
+                    <table class="table table-sm table-hover">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Tanggal</th>
+                                <th>Jam Masuk</th>
+                                <th>Jam Pulang</th>
+                                <th>Status</th>
+                                <th>Terlambat</th>
+                                <th>Jam Kerja</th>
+                                <th>Keterangan</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for presensi in data.presensi_list %}
+                            <tr>
+                                <td>{{ presensi.tanggal|date:"d/m/Y" }}</td>
+                                <td>
+                                    {% if presensi.jam_masuk %}
+                                        {{ presensi.jam_masuk|time:"H:i" }}
+                                    {% else %}
+                                        -
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if presensi.jam_pulang %}
+                                        {{ presensi.jam_pulang|time:"H:i" }}
+                                    {% else %}
+                                        -
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <span class="status-badge status-{{ presensi.status }}">
+                                        {{ presensi.status|title }}
+                                    </span>
+                                </td>
+                                <td>
+                                    {% if presensi.terlambat_menit > 0 %}
+                                        <span class="text-warning">
+                                            {{ presensi.terlambat_menit }} menit
+                                        </span>
+                                    {% else %}
+                                        -
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if presensi.jam_kerja_efektif > 0 %}
+                                        {{ presensi.jam_kerja_efektif }} jam
+                                    {% else %}
+                                        -
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if presensi.keterangan %}
+                                        <small class="text-muted">{{ presensi.keterangan }}</small>
+                                    {% else %}
+                                        -
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="7" class="text-center text-muted">
+                                    Belum ada data absensi untuk {{ formatted_date }}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Analysis Summary -->
+                <div class="row mt-3">
+                    <div class="col-md-6">
+                        <h6>Analisis Kehadiran:</h6>
+                        <ul class="list-unstyled">
+                            {% if data.attendance_rate >= 90 %}
+                                <li><i class="fas fa-check-circle text-success me-2"></i>Kehadiran sangat baik</li>
+                            {% elif data.attendance_rate >= 80 %}
+                                <li><i class="fas fa-check text-warning me-2"></i>Kehadiran baik</li>
+                            {% else %}
+                                <li><i class="fas fa-exclamation-triangle text-danger me-2"></i>Kehadiran perlu diperbaiki</li>
+                            {% endif %}
+                            
+                            {% if data.terlambat > 0 %}
+                                <li><i class="fas fa-clock text-warning me-2"></i>Terlambat {{ data.terlambat }} kali</li>
+                            {% endif %}
+                            
+                            {% if data.avg_work_hours >= 8 %}
+                                <li><i class="fas fa-thumbs-up text-success me-2"></i>Jam kerja efektif</li>
+                            {% elif data.avg_work_hours > 0 %}
+                                <li><i class="fas fa-info-circle text-info me-2"></i>Rata-rata jam kerja: {{ data.avg_work_hours }} jam</li>
+                            {% endif %}
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>Rekomendasi:</h6>
+                        <ul class="list-unstyled">
+                            {% if data.terlambat > 3 %}
+                                <li><i class="fas fa-lightbulb text-warning me-2"></i>Perlu perbaikan kedisiplinan waktu</li>
+                            {% endif %}
+                            {% if data.attendance_rate < 80 %}
+                                <li><i class="fas fa-lightbulb text-info me-2"></i>Perlu peningkatan kehadiran</li>
+                            {% endif %}
+                            {% if data.avg_work_hours < 6 %}
+                                <li><i class="fas fa-lightbulb text-danger me-2"></i>Jam kerja perlu ditingkatkan</li>
+                            {% endif %}
+                            {% if data.attendance_rate >= 90 and data.terlambat <= 1 %}
+                                <li><i class="fas fa-star text-success me-2"></i>Kinerja sangat baik, pertahankan!</li>
+                            {% endif %}
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% empty %}
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body text-center">
+                <i class="fas fa-users fa-3x text-muted mb-3"></i>
+                <h5>Belum ada data guru</h5>
+                <p class="text-muted">Data analisa absensi akan muncul setelah ada guru yang terdaftar</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endfor %}
+{% endblock %}

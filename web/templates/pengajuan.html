@@ -1,0 +1,335 @@
+{% extends 'base.html' %}
+
+{% block title %}Pengajuan Izin - Sistem Presensi Guru{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h2 class="mb-4">
+            <i class="fas fa-file-alt me-2"></i>
+            Pengajuan Izin
+        </h2>
+    </div>
+</div>
+
+<!-- New Application Form -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-plus me-2"></i>
+                    Ajukan Izin Baru
+                </h5>
+            </div>
+            <div class="card-body">
+                <form method="POST">
+                    {% csrf_token %}
+                    <div class="row">
+                        <div class="col-md-6 col-lg-6">
+                            <div class="mb-3">
+                                <label class="form-label">Jenis Izin</label>
+                                <select name="jenis_izin" class="form-select" required>
+                                    <option value="">Pilih Jenis Izin</option>
+                                    <option value="izin">Izin</option>
+                                    <option value="sakit">Sakit</option>
+                                    <option value="cuti">Cuti</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6 col-lg-6">
+                            <div class="mb-3">
+                                <label class="form-label">Tanggal Mulai</label>
+                                <input type="date" name="tanggal_mulai" class="form-control" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6 col-lg-6">
+                            <div class="mb-3">
+                                <label class="form-label">Tanggal Selesai</label>
+                                <input type="date" name="tanggal_selesai" class="form-control" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6 col-lg-6">
+                            <div class="mb-3">
+                                <label class="form-label">Durasi</label>
+                                <input type="text" class="form-control" id="durasi" readonly>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <div class="mb-3">
+                                <label class="form-label">Keterangan</label>
+                                <textarea name="keterangan" class="form-control" rows="4" 
+                                          placeholder="Jelaskan alasan pengajuan izin..." required></textarea>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <div class="d-grid">
+                                <button type="submit" name="add_pengajuan" class="btn btn-primary">
+                                    <i class="fas fa-paper-plane me-2"></i>
+                                    Kirim Pengajuan
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Application History -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-history me-2"></i>
+                    Riwayat Pengajuan
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Jenis Izin</th>
+                                <th>Tanggal</th>
+                                <th>Durasi</th>
+                                <th>Status</th>
+                                <th>Tanggal Pengajuan</th>
+                                <th>Tanggal Approval</th>
+                                <th>Keterangan</th>
+                                <th>Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for pengajuan in pengajuan_list %}
+                            <tr>
+                                <td>
+                                    <span class="badge bg-info">
+                                        {{ pengajuan.jenis_izin|title }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <div>
+                                        <strong>{{ pengajuan.tanggal_mulai|date:"d/m/Y" }}</strong>
+                                        {% if pengajuan.tanggal_mulai != pengajuan.tanggal_selesai %}
+                                            <br>
+                                            <small class="text-muted">s/d {{ pengajuan.tanggal_selesai|date:"d/m/Y" }}</small>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                                <td>
+                                    {% if pengajuan.tanggal_mulai == pengajuan.tanggal_selesai %}
+                                        1 hari
+                                    {% else %}
+                                        {{ pengajuan.tanggal_selesai|date:"d"|add:"-"|add:pengajuan.tanggal_mulai|date:"d"|add:"1" }} hari
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <span class="status-badge status-{{ pengajuan.status }}">
+                                        {{ pengajuan.status|title }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <div>
+                                        {{ pengajuan.tanggal_pengajuan|date:"d/m/Y" }}
+                                        <br>
+                                        <small class="text-muted">{{ pengajuan.tanggal_pengajuan|time:"H:i" }}</small>
+                                    </div>
+                                </td>
+                                <td>
+                                    {% if pengajuan.tanggal_approval %}
+                                        <div>
+                                            {{ pengajuan.tanggal_approval|date:"d/m/Y" }}
+                                            <br>
+                                            <small class="text-muted">{{ pengajuan.tanggal_approval|time:"H:i" }}</small>
+                                        </div>
+                                    {% else %}
+                                        <span class="text-muted">-</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if pengajuan.keterangan %}
+                                        <small class="text-muted">{{ pengajuan.keterangan|truncatechars:50 }}</small>
+                                    {% else %}
+                                        <span class="text-muted">-</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <div class="btn-group" role="group">
+                                        <button class="btn btn-sm btn-outline-info" 
+                                                onclick="viewPengajuanDetail({{ pengajuan.id }})"
+                                                title="Lihat Detail">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                        {% if pengajuan.status == 'pending' %}
+                                        <form method="post" style="display:inline;" onsubmit="return confirm('Yakin hapus pengajuan ini?')">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="delete_pengajuan_id" value="{{ pengajuan.id }}">
+                                            <button type="submit" class="btn btn-sm btn-outline-danger" title="Hapus">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </form>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="8" class="text-center text-muted py-4">
+                                    <i class="fas fa-file-alt fa-2x mb-2"></i>
+                                    <br>
+                                    Belum ada pengajuan izin
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Pengajuan Detail Modal -->
+<div class="modal fade" id="pengajuanModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-file-alt me-2"></i>
+                    Detail Pengajuan Izin
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="pengajuanModalBody">
+                <!-- Content will be loaded here -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Cancel Confirmation Modal -->
+<div class="modal fade" id="cancelModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title text-warning">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    Batalkan Pengajuan
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Apakah Anda yakin ingin membatalkan pengajuan ini?</p>
+                <p class="text-muted">Tindakan ini tidak dapat dibatalkan.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                <button type="button" class="btn btn-warning" onclick="confirmCancel()">Ya, Batalkan</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let cancelPengajuanId = null;
+
+// Calculate duration between dates
+function calculateDuration() {
+    const startDate = document.querySelector('input[name="tanggal_mulai"]').value;
+    const endDate = document.querySelector('input[name="tanggal_selesai"]').value;
+    const durasiField = document.getElementById('durasi');
+    
+    if (startDate && endDate) {
+        const start = new Date(startDate);
+        const end = new Date(endDate);
+        const diffTime = Math.abs(end - start);
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
+        
+        if (diffDays === 1) {
+            durasiField.value = '1 hari';
+        } else {
+            durasiField.value = diffDays + ' hari';
+        }
+    } else {
+        durasiField.value = '';
+    }
+}
+
+// Add event listeners
+document.addEventListener('DOMContentLoaded', function() {
+    const startDateInput = document.querySelector('input[name="tanggal_mulai"]');
+    const endDateInput = document.querySelector('input[name="tanggal_selesai"]');
+    
+    if (startDateInput && endDateInput) {
+        startDateInput.addEventListener('change', calculateDuration);
+        endDateInput.addEventListener('change', calculateDuration);
+    }
+});
+
+// View pengajuan detail
+function viewPengajuanDetail(pengajuanId) {
+    // This would typically make an AJAX call to get detailed pengajuan information
+    // For now, we'll show a placeholder
+    const modal = new bootstrap.Modal(document.getElementById('pengajuanModal'));
+    modal.show();
+    
+    // Simulate loading data
+    setTimeout(() => {
+        document.getElementById('pengajuanModalBody').innerHTML = `
+            <div class="row">
+                <div class="col-md-6">
+                    <h6>Informasi Pengajuan</h6>
+                    <table class="table table-sm">
+                        <tr><td>ID Pengajuan</td><td>: ${pengajuanId}</td></tr>
+                        <tr><td>Jenis Izin</td><td>: Izin</td></tr>
+                        <tr><td>Tanggal Mulai</td><td>: 01/01/2024</td></tr>
+                        <tr><td>Tanggal Selesai</td><td>: 03/01/2024</td></tr>
+                        <tr><td>Durasi</td><td>: 3 hari</td></tr>
+                    </table>
+                </div>
+                <div class="col-md-6">
+                    <h6>Status & Approval</h6>
+                    <table class="table table-sm">
+                        <tr><td>Status</td><td>: <span class="badge bg-warning">Pending</span></td></tr>
+                        <tr><td>Tanggal Pengajuan</td><td>: 30/12/2023 10:30</td></tr>
+                        <tr><td>Tanggal Approval</td><td>: -</td></tr>
+                        <tr><td>Disetujui Oleh</td><td>: -</td></tr>
+                    </table>
+                </div>
+            </div>
+            <div class="row mt-3">
+                <div class="col-12">
+                    <h6>Keterangan</h6>
+                    <p class="text-muted">Keterangan pengajuan izin akan ditampilkan di sini...</p>
+                </div>
+            </div>
+        `;
+    }, 1000);
+}
+
+function cancelPengajuan(pengajuanId) {
+    cancelPengajuanId = pengajuanId;
+    const modal = new bootstrap.Modal(document.getElementById('cancelModal'));
+    modal.show();
+}
+
+function confirmCancel() {
+    if (cancelPengajuanId) {
+        // This would typically make an AJAX call to cancel the pengajuan
+        alert('Pengajuan berhasil dibatalkan');
+        location.reload();
+    }
+    
+    const modal = bootstrap.Modal.getInstance(document.getElementById('cancelModal'));
+    modal.hide();
+}
+</script>
+{% endblock %}

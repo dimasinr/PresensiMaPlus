@@ -1,0 +1,408 @@
+{% extends 'base.html' %}
+
+{% block title %}Daftar Pengajuan Izin - Sistem Presensi Guru{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>
+                <i class="fas fa-file-alt me-2"></i>
+                Daftar Pengajuan Izin
+            </h2>
+            <div>
+                <span class="badge bg-primary fs-6">
+                    Total: {{ pengajuan_list.count }} Pengajuan
+                </span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Filter Options -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3">
+                        <label class="form-label">Status</label>
+                        <select class="form-select" id="statusFilter">
+                            <option value="">Semua Status</option>
+                            <option value="pending">Pending</option>
+                            <option value="disetujui">Disetujui</option>
+                            <option value="ditolak">Ditolak</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Jenis Izin</label>
+                        <select class="form-select" id="jenisFilter">
+                            <option value="">Semua Jenis</option>
+                            <option value="izin">Izin</option>
+                            <option value="sakit">Sakit</option>
+                            <option value="cuti">Cuti</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Tanggal</label>
+                        <input type="date" class="form-control" id="dateFilter">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">&nbsp;</label>
+                        <div class="d-grid">
+                            <button class="btn btn-outline-secondary" onclick="resetFilters()">
+                                <i class="fas fa-refresh me-1"></i>
+                                Reset Filter
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Pengajuan List -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Guru</th>
+                                <th>Jenis Izin</th>
+                                <th>Tanggal</th>
+                                <th>Durasi</th>
+                                <th>Status</th>
+                                <th>Tanggal Pengajuan</th>
+                                <th>Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for pengajuan in pengajuan_list %}
+                            <tr class="pengajuan-row" 
+                                data-status="{{ pengajuan.status }}"
+                                data-jenis="{{ pengajuan.jenis_izin }}"
+                                data-date="{{ pengajuan.tanggal_pengajuan|date:'Y-m-d' }}">
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <div class="avatar-sm bg-primary rounded-circle d-flex align-items-center justify-content-center me-2">
+                                            <i class="fas fa-user text-white"></i>
+                                        </div>
+                                        <div>
+                                            <strong>{{ pengajuan.user.full_name }}</strong>
+                                            <br>
+                                            <small class="text-muted">{{ pengajuan.user.nip|default:"-" }}</small>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="badge bg-info">
+                                        {{ pengajuan.jenis_izin|title }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <div>
+                                        <strong>{{ pengajuan.tanggal_mulai|date:"d/m/Y" }}</strong>
+                                        {% if pengajuan.tanggal_mulai != pengajuan.tanggal_selesai %}
+                                            <br>
+                                            <small class="text-muted">s/d {{ pengajuan.tanggal_selesai|date:"d/m/Y" }}</small>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                                <td>
+                                    {{ pengajuan.duration_days }} hari
+                                </td>
+                                <td>
+                                    <span class="status-badge status-{{ pengajuan.status }}">
+                                        {{ pengajuan.status|title }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <div>
+                                        {{ pengajuan.tanggal_pengajuan|date:"d/m/Y" }}
+                                        <br>
+                                        <small class="text-muted">{{ pengajuan.tanggal_pengajuan|time:"H:i" }}</small>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="btn-group" role="group">
+                                        <button class="btn btn-sm btn-outline-info" 
+                                                onclick="viewPengajuan({{ pengajuan.id }})"
+                                                title="Lihat Detail">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                        {% if pengajuan.status == 'pending' %}
+                                        <button class="btn btn-sm btn-outline-success" 
+                                                onclick="approvePengajuan({{ pengajuan.id }})"
+                                                title="Setujui">
+                                            <i class="fas fa-check"></i>
+                                        </button>
+                                        <button class="btn btn-sm btn-outline-danger" 
+                                                onclick="rejectPengajuan({{ pengajuan.id }})"
+                                                title="Tolak">
+                                            <i class="fas fa-times"></i>
+                                        </button>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="7" class="text-center text-muted py-4">
+                                    <i class="fas fa-file-alt fa-2x mb-2"></i>
+                                    <br>
+                                    Belum ada pengajuan izin
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Pengajuan Detail Modal -->
+<div class="modal fade" id="pengajuanModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-file-alt me-2"></i>
+                    Detail Pengajuan Izin
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="pengajuanModalBody">
+                <!-- Content will be loaded here -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Reject Modal -->
+<div class="modal fade" id="rejectModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title text-danger">
+                    <i class="fas fa-times me-2"></i>
+                    Tolak Pengajuan
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="rejectForm" method="POST">
+                {% csrf_token %}
+                <input type="hidden" name="pengajuan_id" id="rejectPengajuanId">
+                <input type="hidden" name="action" value="reject">
+                <div class="modal-body">
+                    <p>Apakah Anda yakin ingin menolak pengajuan ini?</p>
+                    <div class="mb-3">
+                        <label for="alasan" class="form-label">Alasan Penolakan</label>
+                        <textarea class="form-control" id="alasan" name="alasan" rows="3" required></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-danger">Tolak Pengajuan</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Filter functionality
+document.getElementById('statusFilter').addEventListener('change', filterPengajuan);
+document.getElementById('jenisFilter').addEventListener('change', filterPengajuan);
+document.getElementById('dateFilter').addEventListener('change', filterPengajuan);
+
+function filterPengajuan() {
+    const statusFilter = document.getElementById('statusFilter').value;
+    const jenisFilter = document.getElementById('jenisFilter').value;
+    const dateFilter = document.getElementById('dateFilter').value;
+    
+    const rows = document.querySelectorAll('.pengajuan-row');
+    
+    rows.forEach(row => {
+        const status = row.dataset.status;
+        const jenis = row.dataset.jenis;
+        const date = row.dataset.date;
+        
+        let show = true;
+        
+        if (statusFilter && status !== statusFilter) show = false;
+        if (jenisFilter && jenis !== jenisFilter) show = false;
+        if (dateFilter && date !== dateFilter) show = false;
+        
+        row.style.display = show ? 'table-row' : 'none';
+    });
+}
+
+function resetFilters() {
+    document.getElementById('statusFilter').value = '';
+    document.getElementById('jenisFilter').value = '';
+    document.getElementById('dateFilter').value = '';
+    
+    const rows = document.querySelectorAll('.pengajuan-row');
+    rows.forEach(row => {
+        row.style.display = 'table-row';
+    });
+}
+
+function viewPengajuan(pengajuanId) {
+    // Show loading state
+    document.getElementById('pengajuanModalBody').innerHTML = `
+        <div class="text-center">
+            <i class="fas fa-spinner fa-spin fa-2x mb-3"></i>
+            <p>Memuat detail pengajuan...</p>
+        </div>
+    `;
+    
+    const modal = new bootstrap.Modal(document.getElementById('pengajuanModal'));
+    modal.show();
+    
+    // Fetch pengajuan data via AJAX
+    fetch(`?pengajuan_id=${pengajuanId}`, {
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            const pengajuan = data.data;
+            document.getElementById('pengajuanModalBody').innerHTML = `
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6 class="text-primary mb-3">
+                            <i class="fas fa-user me-2"></i>Informasi Guru
+                        </h6>
+                        <table class="table table-sm">
+                            <tr>
+                                <td width="40%"><strong>Nama Guru</strong></td>
+                                <td>: ${pengajuan.guru_name}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>NIP</strong></td>
+                                <td>: ${pengajuan.guru_nip}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>No. Telepon</strong></td>
+                                <td>: ${pengajuan.guru_phone}</td>
+                            </tr>
+                        </table>
+                        
+                        <h6 class="text-primary mb-3 mt-4">
+                            <i class="fas fa-calendar me-2"></i>Informasi Pengajuan
+                        </h6>
+                        <table class="table table-sm">
+                            <tr>
+                                <td width="40%"><strong>Jenis Izin</strong></td>
+                                <td>: <span class="badge bg-info">${pengajuan.jenis_izin}</span></td>
+                            </tr>
+                            <tr>
+                                <td><strong>Tanggal Mulai</strong></td>
+                                <td>: ${pengajuan.tanggal_mulai}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Tanggal Selesai</strong></td>
+                                <td>: ${pengajuan.tanggal_selesai}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Durasi</strong></td>
+                                <td>: ${pengajuan.durasi_hari} hari</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Status</strong></td>
+                                <td>: <span class="status-badge status-${pengajuan.status.toLowerCase()}">${pengajuan.status}</span></td>
+                            </tr>
+                        </table>
+                    </div>
+                    <div class="col-md-6">
+                        <h6 class="text-primary mb-3">
+                            <i class="fas fa-clock me-2"></i>Timeline
+                        </h6>
+                        <table class="table table-sm">
+                            <tr>
+                                <td width="40%"><strong>Tanggal Pengajuan</strong></td>
+                                <td>: ${pengajuan.tanggal_pengajuan}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Tanggal Approval</strong></td>
+                                <td>: ${pengajuan.tanggal_approval}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Disetujui Oleh</strong></td>
+                                <td>: ${pengajuan.approved_by}</td>
+                            </tr>
+                        </table>
+                        
+                        <h6 class="text-primary mb-3 mt-4">
+                            <i class="fas fa-comment me-2"></i>Keterangan
+                        </h6>
+                        <div class="border rounded p-3 bg-light">
+                            <p class="mb-0">${pengajuan.keterangan}</p>
+                        </div>
+                        
+                        ${pengajuan.alasan_penolakan !== '-' ? `
+                        <h6 class="text-danger mb-3 mt-4">
+                            <i class="fas fa-times-circle me-2"></i>Alasan Penolakan
+                        </h6>
+                        <div class="border rounded p-3 bg-light border-danger">
+                            <p class="mb-0 text-danger">${pengajuan.alasan_penolakan}</p>
+                        </div>
+                        ` : ''}
+                    </div>
+                </div>
+            `;
+        } else {
+            document.getElementById('pengajuanModalBody').innerHTML = `
+                <div class="text-center text-danger">
+                    <i class="fas fa-exclamation-triangle fa-2x mb-3"></i>
+                    <p>${data.error || 'Terjadi kesalahan saat memuat data'}</p>
+                </div>
+            `;
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        document.getElementById('pengajuanModalBody').innerHTML = `
+            <div class="text-center text-danger">
+                <i class="fas fa-exclamation-triangle fa-2x mb-3"></i>
+                <p>Terjadi kesalahan saat memuat data</p>
+            </div>
+        `;
+    });
+}
+
+function approvePengajuan(pengajuanId) {
+    if (confirm('Apakah Anda yakin ingin menyetujui pengajuan ini?')) {
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.innerHTML = `
+            {% csrf_token %}
+            <input type="hidden" name="pengajuan_id" value="${pengajuanId}">
+            <input type="hidden" name="action" value="approve">
+        `;
+        document.body.appendChild(form);
+        form.submit();
+    }
+}
+
+function rejectPengajuan(pengajuanId) {
+    document.getElementById('rejectPengajuanId').value = pengajuanId;
+    const modal = new bootstrap.Modal(document.getElementById('rejectModal'));
+    modal.show();
+}
+</script>
+{% endblock %}

@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Sistem Presensi Guru{% endblock %}</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Custom CSS -->
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            overflow-x: hidden;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        .wrapper {
+            display: flex;
+            min-height: 100vh;
+        }
+        
+        .sidebar {
+            width: 280px;
+            height: 100vh;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            position: fixed;
+            left: 0;
+            top: 0;
+            z-index: 1000;
+            overflow-y: auto;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+        }
+        
+        .sidebar::-webkit-scrollbar {
+            width: 6px;
+        }
+        
+        .sidebar::-webkit-scrollbar-track {
+            background: rgba(255,255,255,0.1);
+        }
+        
+        .sidebar::-webkit-scrollbar-thumb {
+            background: rgba(255,255,255,0.3);
+            border-radius: 3px;
+        }
+        
+        .sidebar .nav-link {
+            color: rgba(255,255,255,0.8);
+            padding: 12px 20px;
+            margin: 2px 0;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+        }
+        
+        .sidebar .nav-link:hover,
+        .sidebar .nav-link.active {
+            color: white;
+            background-color: rgba(255,255,255,0.1);
+            transform: translateX(5px);
+            text-decoration: none;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .sidebar .nav-link i {
+            width: 20px;
+            margin-right: 10px;
+        }
+        
+        .main-content {
+            flex: 1;
+            margin-left: 280px;
+            background-color: #f8f9fa;
+            min-height: 100vh;
+            padding: 20px;
+            transition: margin-left 0.3s ease;
+        }
+        
+        .card {
+            border: none;
+            border-radius: 15px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            transition: transform 0.2s ease;
+        }
+        
+        .card:hover {
+            transform: translateY(-2px);
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+        
+        .navbar-brand {
+            font-weight: bold;
+            color: #667eea !important;
+        }
+        
+        .status-badge {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+        
+        .status-hadir { background-color: #d4edda; color: #155724; }
+        .status-terlambat { background-color: #fff3cd; color: #856404; }
+        .status-izin { background-color: #cce5ff; color: #004085; }
+        .status-sakit { background-color: #f8d7da; color: #721c24; }
+        .status-alpha { background-color: #f5c6cb; color: #721c24; }
+        .status-pending { background-color: #fff3cd; color: #856404; }
+        .status-disetujui { background-color: #d4edda; color: #155724; }
+        .status-ditolak { background-color: #f8d7da; color: #721c24; }
+        
+        /* Mobile menu toggle button */
+        .mobile-menu-toggle {
+            display: none;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            color: white;
+            padding: 10px 15px;
+            border-radius: 8px;
+            font-size: 1.2rem;
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 1001;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        }
+        
+        .mobile-menu-toggle:hover {
+            transform: scale(1.05);
+        }
+        
+        /* Overlay for mobile */
+        .sidebar-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 999;
+        }
+        
+        /* Responsive sidebar */
+        @media (max-width: 768px) {
+            .mobile-menu-toggle {
+                display: block;
+            }
+            
+            .sidebar {
+                transform: translateX(-100%);
+                width: 280px;
+            }
+            
+            .sidebar.show {
+                transform: translateX(0);
+            }
+            
+            .main-content {
+                margin-left: 0;
+                padding: 15px;
+                padding-top: 80px;
+            }
+            
+            .wrapper {
+                flex-direction: column;
+            }
+            
+            .navbar {
+                padding: 10px 15px;
+            }
+            
+            .navbar-brand {
+                font-size: 1.1rem;
+            }
+            
+            .card {
+                margin-bottom: 15px;
+            }
+            
+            .table-responsive {
+                font-size: 0.9rem;
+            }
+            
+            .btn {
+                font-size: 0.9rem;
+                padding: 8px 16px;
+            }
+            
+            .status-badge {
+                font-size: 0.75rem;
+                padding: 4px 8px;
+            }
+        }
+        
+        /* Extra small devices */
+        @media (max-width: 576px) {
+            .main-content {
+                padding: 10px;
+                padding-top: 70px;
+            }
+            
+            .sidebar {
+                width: 100%;
+            }
+            
+            .mobile-menu-toggle {
+                top: 15px;
+                left: 15px;
+                padding: 8px 12px;
+                font-size: 1rem;
+            }
+            
+            .navbar-brand {
+                font-size: 1rem;
+            }
+            
+            .card-body {
+                padding: 15px;
+            }
+            
+            .table {
+                font-size: 0.8rem;
+            }
+            
+            .btn {
+                font-size: 0.8rem;
+                padding: 6px 12px;
+            }
+            
+            /* Table responsive improvements */
+            .table-responsive {
+                border: none;
+            }
+            
+            .table td, .table th {
+                padding: 8px 4px;
+                vertical-align: middle;
+            }
+            
+            /* Form improvements */
+            .form-control, .form-select {
+                font-size: 0.9rem;
+            }
+            
+            /* Card improvements */
+            .card-header {
+                padding: 15px;
+            }
+            
+            .card-body {
+                padding: 15px;
+            }
+            
+            /* Button improvements */
+            .btn-group .btn {
+                padding: 4px 8px;
+                font-size: 0.75rem;
+            }
+            
+            /* Modal improvements */
+            .modal-dialog {
+                margin: 10px;
+            }
+            
+            .modal-body {
+                padding: 15px;
+            }
+            
+            /* List group improvements */
+            .list-group-item {
+                padding: 12px 15px;
+            }
+            
+            /* Alert improvements */
+            .alert {
+                padding: 12px 15px;
+                font-size: 0.9rem;
+            }
+        }
+        
+        /* Landscape orientation on mobile */
+        @media (max-width: 768px) and (orientation: landscape) {
+            .main-content {
+                padding-top: 60px;
+            }
+            
+            .mobile-menu-toggle {
+                top: 10px;
+                left: 10px;
+            }
+        }
+        
+        /* Print styles */
+        @media print {
+            .sidebar, .mobile-menu-toggle, .sidebar-overlay {
+                display: none !important;
+            }
+            
+            .main-content {
+                margin-left: 0 !important;
+                padding: 0 !important;
+            }
+            
+            .card {
+                box-shadow: none !important;
+                border: 1px solid #ddd !important;
+            }
+        }
+        
+        /* Smooth scrolling */
+        html {
+            scroll-behavior: smooth;
+        }
+        
+        /* Hide scrollbar on mobile */
+        @media (max-width: 768px) {
+            .sidebar::-webkit-scrollbar {
+                display: none;
+            }
+            .sidebar {
+                -ms-overflow-style: none;
+                scrollbar-width: none;
+            }
+        }
+    </style>
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    {% if user.is_authenticated %}
+    <!-- Mobile Menu Toggle Button -->
+    <button class="mobile-menu-toggle" onclick="toggleSidebar()">
+        <i class="fas fa-bars"></i>
+    </button>
+    
+    <!-- Sidebar Overlay -->
+    <div class="sidebar-overlay" onclick="closeSidebar()"></div>
+    
+    <div class="wrapper">
+        <!-- Sidebar -->
+        <div class="sidebar p-3" id="sidebar">
+            <div class="text-center mb-4">
+                <h4 class="text-white mb-0">
+                    <i class="fas fa-school me-2"></i>
+                    Presensi Guru
+                </h4>
+                <small class="text-white-50">{{ user.abstract_user.role|title }}</small>
+            </div>
+            
+            <nav class="nav flex-column">
+                <a class="nav-link {% if request.resolver_match.url_name == 'home' %}active{% endif %}" href="{% url 'home' %}" onclick="closeSidebar()">
+                    <i class="fas fa-home me-2"></i> Dashboard
+                </a>
+                
+                {% if user.abstract_user.role == 'admin' %}
+                <a class="nav-link {% if request.resolver_match.url_name == 'analisa_absensi' %}active{% endif %}" href="{% url 'analisa_absensi' %}" onclick="closeSidebar()">
+                    <i class="fas fa-chart-bar me-2"></i> Analisa Absensi
+                </a>
+                <a class="nav-link {% if request.resolver_match.url_name == 'daftar_guru' %}active{% endif %}" href="{% url 'daftar_guru' %}" onclick="closeSidebar()">
+                    <i class="fas fa-users me-2"></i> Kelola Guru
+                </a>
+                <a class="nav-link {% if request.resolver_match.url_name == 'list_pengajuan' %}active{% endif %}" href="{% url 'list_pengajuan' %}" onclick="closeSidebar()">
+                    <i class="fas fa-file-alt me-2"></i> Kelola Pengajuan Guru
+                </a>
+                {% else %}
+                <a class="nav-link {% if request.resolver_match.url_name == 'absensi' %}active{% endif %}" href="{% url 'absensi' %}" onclick="closeSidebar()">
+                    <i class="fas fa-clock me-2"></i> Absensi
+                </a>
+                <a class="nav-link {% if request.resolver_match.url_name == 'history_absensi' %}active{% endif %}" href="{% url 'history_absensi' %}" onclick="closeSidebar()">
+                    <i class="fas fa-history me-2"></i> Riwayat Absensi
+                </a>
+                <a class="nav-link {% if request.resolver_match.url_name == 'pengajuan' %}active{% endif %}" href="{% url 'pengajuan' %}" onclick="closeSidebar()">
+                    <i class="fas fa-file-alt me-2"></i> Pengajuan Izin
+                </a>
+                {% endif %}
+                
+                <hr class="text-white-50">
+                <a class="nav-link" href="{% url 'logout' %}" onclick="closeSidebar()">
+                    <i class="fas fa-sign-out-alt me-2"></i> Logout
+                </a>
+            </nav>
+        </div>
+        
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Top Navbar -->
+            <nav class="navbar navbar-expand-lg navbar-light bg-white rounded shadow-sm mb-4">
+                <div class="container-fluid">
+                    <span class="navbar-brand">
+                        <i class="fas fa-user-circle me-2"></i>
+                        {{ user.abstract_user.full_name }}
+                    </span>
+                    <div class="navbar-nav ms-auto">
+                        <span class="navbar-text">
+                            <i class="fas fa-calendar me-1"></i>
+                            {{ today|date:"d F Y" }}
+                        </span>
+                    </div>
+                </div>
+            </nav>
+            
+            <!-- Messages -->
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+            
+            <!-- Page Content -->
+            {% block content %}{% endblock %}
+        </div>
+    </div>
+    {% else %}
+        {% block auth_content %}{% endblock %}
+    {% endif %}
+    
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Custom JS -->
+    <script>
+        // Mobile sidebar functions
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.querySelector('.sidebar-overlay');
+            
+            if (sidebar.classList.contains('show')) {
+                closeSidebar();
+            } else {
+                openSidebar();
+            }
+        }
+        
+        function openSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.querySelector('.sidebar-overlay');
+            
+            sidebar.classList.add('show');
+            overlay.style.display = 'block';
+            document.body.style.overflow = 'hidden';
+        }
+        
+        function closeSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.querySelector('.sidebar-overlay');
+            
+            sidebar.classList.remove('show');
+            overlay.style.display = 'none';
+            document.body.style.overflow = 'auto';
+        }
+        
+        // Close sidebar when clicking outside on mobile
+        document.addEventListener('click', function(event) {
+            const sidebar = document.getElementById('sidebar');
+            const toggle = document.querySelector('.mobile-menu-toggle');
+            
+            if (window.innerWidth <= 768) {
+                if (!sidebar.contains(event.target) && !toggle.contains(event.target)) {
+                    closeSidebar();
+                }
+            }
+        });
+        
+        // Handle window resize
+        window.addEventListener('resize', function() {
+            if (window.innerWidth > 768) {
+                closeSidebar();
+            }
+        });
+        
+        // Auto-hide alerts after 5 seconds
+        setTimeout(function() {
+            const alerts = document.querySelectorAll('.alert');
+            alerts.forEach(function(alert) {
+                const bsAlert = new bootstrap.Alert(alert);
+                bsAlert.close();
+            });
+        }, 5000);
+        
+        // Add touch support for mobile
+        let touchStartX = 0;
+        let touchEndX = 0;
+        
+        document.addEventListener('touchstart', function(event) {
+            touchStartX = event.changedTouches[0].screenX;
+        });
+        
+        document.addEventListener('touchend', function(event) {
+            touchEndX = event.changedTouches[0].screenX;
+            handleSwipe();
+        });
+        
+        function handleSwipe() {
+            const swipeThreshold = 50;
+            const swipeDistance = touchEndX - touchStartX;
+            
+            if (window.innerWidth <= 768) {
+                if (swipeDistance > swipeThreshold && touchStartX < 50) {
+                    // Swipe right from left edge - open sidebar
+                    openSidebar();
+                } else if (swipeDistance < -swipeThreshold) {
+                    // Swipe left - close sidebar
+                    closeSidebar();
+                }
+            }
+        }
+    </script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>
